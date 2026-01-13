@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS products
+ADD COLUMN image_urls JSONB NOT NULL DEFAULT '[]';
