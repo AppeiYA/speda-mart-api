@@ -51,7 +51,7 @@ func (r *ProductRepository) GetProduct(ctx context.Context, productId string) (*
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperrors.NotFoundError("user not found")
+			return nil, apperrors.NotFoundError("product not found")
 		}
 		log.Println("Error getting in db: ", err)
 		return nil, apperrors.InternalServerError("error in db get")
