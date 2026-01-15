@@ -3,15 +3,15 @@ package cart_queries
 const (
 	CREATECART=`
 	INSERT INTO carts (user_id)
-	VALUES ($1);
-	RETURNING id
+	VALUES ($1)
+	RETURNING id;
 	`
 	GETUSERCART =`
 	SELECT 
 		c.id,
 		c.user_id,
 		c.status,
-		COUNT(DISTINCT ci.item_id) AS item_count,
+		COUNT(DISTINCT ci.product_id) AS item_count,
 		COALESCE(
 			JSON_AGG(
 				JSON_BUILD_OBJECT(
@@ -53,11 +53,12 @@ const (
 
 	CHECKAVAILABLECART=`
 	SELECT
-	c.id,
-	COUNT(DISTINCT ci.item_id) AS item_count,
+    c.id,
+    COUNT(DISTINCT ci.product_id) AS item_count
 	FROM carts c
 	LEFT JOIN cart_items ci ON c.id = ci.cart_id
-	WHERE user_id = $1
-	AND status = 'active'
+	WHERE c.user_id = $1
+  	AND c.status = 'active'
+	GROUP BY c.id;
 	`
 )

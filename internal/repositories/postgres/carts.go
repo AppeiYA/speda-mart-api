@@ -30,7 +30,7 @@ func (r *CartsRepository) CreateCart(ctx context.Context, userId string) (*model
 		log.Println("Error creating cart", err)
 		return nil, err
 	}
-	return &models.CheckAvailableCart{CartId: cartId, ItemCount: 0}, nil
+	return &models.CheckAvailableCart{Id: cartId, ItemCount: 0}, nil
 }
 
 func (r *CartsRepository) GetuserCart(ctx context.Context, userId string) (*models.GetCartResponse, error) {
@@ -38,7 +38,7 @@ func (r *CartsRepository) GetuserCart(ctx context.Context, userId string) (*mode
 	err := r.db.GetContext(ctx, &userCart, cart_queries.GETUSERCART, userId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperrors.NotFoundError("user not found")
+			return nil, apperrors.NotFoundError("cart not found")
 		}
 		log.Println("Error getting in db: ", err)
 		return nil, apperrors.InternalServerError("error in db get")

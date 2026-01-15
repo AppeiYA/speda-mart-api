@@ -14,5 +14,7 @@ func RegisterCartsRoutes(r *mux.Router ,ch *handlers.CartsHandler, am *middlewar
 	protected := carts.NewRoute().Subrouter()
 	protected.Use(am.Auth())
 
-	protected.HandleFunc("/", ch.AddToCart)
+	protected.HandleFunc("", ch.AddToCart).Methods("POST")
+	protected.HandleFunc("", ch.GetUserCart).Methods("GET")
+	protected.HandleFunc("/{product_id}", ch.DeleteItemFromCart).Methods("DELETE")
 }

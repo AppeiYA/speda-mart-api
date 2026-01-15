@@ -46,3 +46,54 @@ func (h *CartsHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	}
 	s.ReqResponse(w, http.StatusOK, s.Payload{Message: "Item added to cart"})
 }
+
+func (h *CartsHandler) GetUserCart(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, ok := middlewares.GetUserFromContext(ctx)
+	if !ok {
+		s.ReqResponse(w, http.StatusUnauthorized, s.Payload{Message: "Unauthorized user"})
+		return
+	}
+
+	cart, err := h.CartService.GetUserCart(ctx, user.UserId)
+	if err != nil {
+		if appErr, ok := err.(*apperrors.ErrorResponse); ok {
+			s.ReqResponse(w, appErr.StatusCode, s.Payload{Message: appErr.Message})
+			return
+		}
+
+		s.ReqResponse(w, http.StatusInternalServerError, s.Payload{Message: "Internal server error"})
+		return
+	}
+
+	s.ReqResponse(w, http.StatusOK, s.Payload{
+		Message: "Cart fetched successfully",
+		Data: cart,
+	})
+}
+
+func (h *CartsHandler) DeleteItemFromCart(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user, ok := middlewares.GetUserFromContext(ctx)
+	if !ok {
+		s.ReqResponse(w, http.StatusUnauthorized, s.Payload{Message: "Unauthorized user"})
+		return
+	}
+
+	params := utils.ExtractParams(r, "product_id")
+
+	// delete item
+	err := h.CartService.DeleteItemFromCart(ctx, user.UserId, params["product_id"])
+	if err != nil {
+		if appErr, ok := err.(*apperrors.ErrorResponse); ok{
+			s.ReqResponse(w, appErr.StatusCode, s.Payload{Message: appErr.Message})
+			return
+		}
+
+		s.ReqResponse(w, http.StatusInternalServerError, s.Payload{Message: "internal server error"})
+		return
+	}
+
+	s.ReqResponse(w, http.StatusOK, s.Payload{Message: "Item removed from cart"})
+}
