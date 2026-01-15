@@ -97,3 +97,40 @@ func (h *CartsHandler) DeleteItemFromCart(w http.ResponseWriter, r *http.Request
 
 	s.ReqResponse(w, http.StatusOK, s.Payload{Message: "Item removed from cart"})
 }
+
+func (h *CartsHandler) UpdateItemQuantityInCart(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, ok := middlewares.GetUserFromContext(ctx)
+	if !ok {
+		s.ReqResponse(w, http.StatusUnauthorized, s.Payload{Message: "User not authorized"})
+		return
+	}
+
+	var payload models.UpdateProductQuantityInCart
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		s.ReqResponse(w, http.StatusBadRequest, s.Payload{Message: "no body in request"})
+		return
+	}
+	if err := validate.Struct(payload); err != nil {
+		errs := utils.ValidationErrors(err)
+		s.ReqResponse(w, http.StatusUnprocessableEntity, s.Payload{Message: "invalid body content", Errors: errs})
+		return
+	}
+
+	resp, err := h.CartService.UpdateItemQuantityInCart(ctx, user.UserId, &payload)
+	if err != nil {
+		if appErr, ok := err.(*apperrors.ErrorResponse); ok{
+			s.ReqResponse(w, appErr.StatusCode, s.Payload{Message: appErr.Message})
+			return
+		}
+
+		s.ReqResponse(w, http.StatusInternalServerError, s.Payload{Message: "internal server error"})
+		return
+	}
+
+	s.ReqResponse(w, http.StatusOK, s.Payload{
+		Message: "Item quantity updated successfully",
+		Data: resp,
+	})
+}

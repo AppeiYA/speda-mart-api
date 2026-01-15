@@ -6,6 +6,8 @@ import (
 	"e-commerce/internal/models"
 	"e-commerce/internal/repositories"
 	"errors"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -70,6 +72,9 @@ func (s *CartsService) GetUserCart(ctx context.Context, userId string) (*models.
 }
 
 func (s *CartsService) DeleteItemFromCart(ctx context.Context, userId string, itemId string) error {
+	if _, err := uuid.Parse(itemId); !(err == nil) {
+		return apperrors.BadException("product does not exist")
+	}
 	// search if item exists
 	_, err := s.productRepo.GetProduct(ctx, itemId)
 	if err != nil {
@@ -79,7 +84,7 @@ func (s *CartsService) DeleteItemFromCart(ctx context.Context, userId string, it
 	// check if item is in cart
 	cart, err := s.cartsRepo.GetuserCart(ctx, userId)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	existsInCart := ProductInCart(cart.Items, itemId)
@@ -92,8 +97,35 @@ func (s *CartsService) DeleteItemFromCart(ctx context.Context, userId string, it
 	if deleteErr != nil {
 		return deleteErr
 	}
-	
+
 	return nil
+}
+
+func (s *CartsService) UpdateItemQuantityInCart(ctx context.Context, userId string, payload *models.UpdateProductQuantityInCart) (*models.UpdateProductQuantityInCart, error) {
+	// search if item exists
+	_, err := s.productRepo.GetProduct(ctx, payload.ProductId)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if item is in cart
+	cart, err := s.cartsRepo.GetuserCart(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	existsInCart := ProductInCart(cart.Items, payload.ProductId)
+	if !existsInCart {
+		return nil, apperrors.NotFoundError("Product not in cart")
+	}
+
+	// update product quantity
+	updateErr := s.cartsRepo.UpdateProductQuantity(ctx, cart.Id, payload)
+	if updateErr != nil {
+		return nil, updateErr
+	}
+
+	return payload, nil
 }
 
 func ProductInCart(items []models.ItemsInCart, productId string) bool {

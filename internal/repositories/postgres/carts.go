@@ -50,17 +50,17 @@ func (r *CartsRepository) GetuserCart(ctx context.Context, userId string) (*mode
 func (r *CartsRepository) AddToCart(ctx context.Context, cartId string, payload *models.AddToCart) error {
 	_, err := r.db.ExecContext(ctx, cart_queries.ADDTOCART, cartId, payload.ProductId, payload.Quantity, payload.UnitPrice)
 	if err != nil {
-		log.Println("Error adding item to cart")
-		return err
+		log.Println("Error adding item to cart", err)
+		return apperrors.InternalServerError("Error adding item to cart")
 	}
 	return nil
 }
 
-func (r *CartsRepository) UpdateProductQuantity(ctx context.Context, payload *models.UpdateProductQuantityInCart) error {
-	_, err := r.db.ExecContext(ctx, cart_queries.UPDATEPRODUCTQUANTITY, payload.Quantity, payload.CartId, payload.ProductId)
+func (r *CartsRepository) UpdateProductQuantity(ctx context.Context, cartId string, payload *models.UpdateProductQuantityInCart) error {
+	_, err := r.db.ExecContext(ctx, cart_queries.UPDATEPRODUCTQUANTITY, payload.Quantity, cartId, payload.ProductId)
 	if err != nil {
 		log.Println("Error updating product quantity ", err)
-		return err
+		return apperrors.InternalServerError("Error updating product quantity")
 	}
 	return nil
 }
@@ -69,7 +69,7 @@ func (r *CartsRepository) DeleteFromCart(ctx context.Context, cartId string, pro
 	_, err := r.db.ExecContext(ctx, cart_queries.DELETEFROMCART, cartId, productId)
 	if err != nil {
 		log.Println("Error deleting product from cart ", err)
-		return err
+		return apperrors.InternalServerError("Error deleting from cart")
 	}
 	return nil
 }

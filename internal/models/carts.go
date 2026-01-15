@@ -86,9 +86,8 @@ type GetCartResponse struct {
 }
 
 type UpdateProductQuantityInCart struct {
-	CartId string `json:"cart_id" db:"cart_id"`
-	ProductId string `json:"product_id" db:"product_id"`
-	Quantity int `json:"quantity" db:"quantity"`
+	ProductId string `json:"product_id" db:"product_id" validate:"required"`
+	Quantity int `json:"quantity" db:"quantity" validate:"required,min=1"`
 }
 
 type CheckAvailableCart struct {

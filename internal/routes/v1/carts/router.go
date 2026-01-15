@@ -16,5 +16,6 @@ func RegisterCartsRoutes(r *mux.Router ,ch *handlers.CartsHandler, am *middlewar
 
 	protected.HandleFunc("", ch.AddToCart).Methods("POST")
 	protected.HandleFunc("", ch.GetUserCart).Methods("GET")
+	protected.HandleFunc("/update-quantity", ch.UpdateItemQuantityInCart).Methods("PUT")
 	protected.HandleFunc("/{product_id}", ch.DeleteItemFromCart).Methods("DELETE")
 }
