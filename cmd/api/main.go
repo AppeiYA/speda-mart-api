@@ -8,6 +8,7 @@ import (
 	"e-commerce/internal/middlewares"
 	"e-commerce/internal/repositories/postgres"
 	v1 "e-commerce/internal/routes/v1"
+	"e-commerce/internal/routes/v1/auth"
 	"e-commerce/internal/services"
 	"e-commerce/package/jwt"
 	"log"
@@ -23,6 +24,15 @@ func main() {
 	if dbErr != nil {
 		log.Fatal(dbErr)
 	}
+
+	// oauth2 gomniauth
+	googleAuth := auth.NewConfigGomniAuth(
+		cfg.GoogleSecurityKey, 
+		cfg.GoogleClientId, 
+		cfg.GoogleClientSecret, 
+		cfg.GoogleRedirectUrl,
+	)
+	googleAuth.InitGomniauth()
 	
 	// repositories
 	userRepo:= postgres.NewUserRepository(db)

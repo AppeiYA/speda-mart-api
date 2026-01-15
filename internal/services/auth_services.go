@@ -7,6 +7,7 @@ import (
 	"e-commerce/internal/repositories"
 	"e-commerce/internal/utils"
 	"e-commerce/package/jwt"
+	"errors"
 )
 
 type AuthService struct {
@@ -55,4 +56,60 @@ func (s *AuthService) Login(ctx context.Context, payload *models.LoginRequest) (
 	}
 
 	return &resp, token, nil
+}
+
+func (s *AuthService) GoogleAuthLogin(ctx context.Context, payload *models.CreateUser) (*models.GetUserResponse, string, error) {
+	// check if email already exists for user
+	user, err := s.UserRepo.GetUserForAuth(ctx, payload.Email)
+	if err != nil {
+		var appErr *apperrors.ErrorResponse
+		// if user is not found, create a new user
+		if errors.As(err, &appErr) && appErr.Code == apperrors.ErrNotFound {
+			// hash random password
+			password, err := utils.GenerateRandomStringForHashing(32)
+			if err != nil {
+				return nil, "", err
+			}
+			hash, err := utils.HashPassword(password)
+			if err != nil {
+				return nil, "", err
+			}
+
+			newUser := &models.CreateUser{
+				FirstName: payload.FirstName,
+				LastName: payload.LastName,
+				Email: payload.Email,
+				Password: hash,
+			}
+
+			user, err = s.UserRepo.CreateUser(ctx, newUser)
+			if err != nil {
+				return nil, "", err
+			}
+		}else {
+			return nil, "", err
+		}
+	}
+
+	token, err := s.JwtService.GenerateToken(
+		jwt.UserPayload{
+			UserId: user.Id.String(), 
+			Email: user.Email, 
+			Role: user.Role},
+		)
+
+	if err != nil {
+		return nil, "", apperrors.InternalServerError("error siginig token")
+	}
+
+	resp := models.GetUserResponse{
+		FirstName: user.FirstName,
+		LastName: user.LastName,
+		Email: user.Email,
+		Role: user.Role,
+		CreatedAt: user.CreatedAt,
+	}
+
+	return &resp, token, nil
+
 }

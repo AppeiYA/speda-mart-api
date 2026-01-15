@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"crypto/rand"
+	"e-commerce/internal/errors/apperrors"
+	"encoding/base64"
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
@@ -20,4 +23,14 @@ func HashPassword(password string) (string, error) {
 func CompareHashAndPassword(password string, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func GenerateRandomStringForHashing(n int) (string, error) {
+    bytes := make([]byte, n)
+    if _, err := rand.Read(bytes); err != nil {
+		log.Println("Error generating random string", err)
+        return "", apperrors.InternalServerError(err.Error())
+    }
+
+    return base64.URLEncoding.EncodeToString(bytes), nil
 }

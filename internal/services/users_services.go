@@ -36,6 +36,6 @@ func (s *UserService) CreateUser(ctx context.Context, payload *models.CreateUser
 	payload.Password = hash
 
 	// create user
-	createErr := s.userRepo.CreateUser(ctx, payload)
+	_, createErr := s.userRepo.CreateUser(ctx, payload)
 	return createErr
 }

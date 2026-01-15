@@ -11,6 +11,27 @@ type Config struct {
 	DatabaseUrl string
 	Port        string
 	JwtSecret   string
+	GoogleClientId string
+	GoogleClientSecret string
+	GoogleSecurityKey string
+	GoogleRedirectUrl string
+}
+
+func requireEnv(variable string) string {
+	if os.Getenv(variable) == "" {
+		log.Fatalf("%s is required in .env", variable)
+		return ""
+	}else{
+		return os.Getenv(variable)
+	}
+}
+
+func getEnv(variable string, defaultEnv string) string {
+	if os.Getenv(variable) == "" {
+		return defaultEnv
+	}else{
+		return os.Getenv(variable)
+	}
 }
 
 func LoadConfig() *Config {
@@ -20,20 +41,23 @@ func LoadConfig() *Config {
 		log.Fatalln(".env file not found")
 	}
 
-	switch {
-	case os.Getenv("DATABASE_URL") == "":
-		log.Fatalln("No DATABASE_URL found")
-	case os.Getenv("PORT") == "":
-		log.Fatalln("No PORT found")
-	case os.Getenv("JWT_SECRET") == "":
-		log.Fatalln("No JWT_SECRET found")
-	default:
-		log.Println("Complete env entries")
+	ConfigData := map[string]string{
+		"DATABASE_URL" : requireEnv("DATABASE_URL"),
+		"PORT": getEnv("PORT", ":3333"),
+		"JWT_SECRET": requireEnv("JWT_SECRET"),
+		"GOOGLE_CLIENT_ID": requireEnv("GOOGLE_CLIENT_ID"),
+		"GOOGLE_CLIENT_SECRET": requireEnv("GOOGLE_CLIENT_SECRET"),
+		"GOOGLE_SECURITY_KEY": requireEnv("GOOGLE_SECURITY_KEY"),
+		"GOOGLE_REDIRECT_URL": getEnv("GOOGLE_REDIRECT_URL", "http://localhost:3333/api/v1/auth/callback/google"),
 	}
 
 	return &Config{
-		DatabaseUrl: os.Getenv("DATABASE_URL"),
-		JwtSecret: os.Getenv("JWT_SECRET"),
-		Port: os.Getenv("PORT"),
+		DatabaseUrl: ConfigData["DATABASE_URL"],
+		JwtSecret: ConfigData["JWT_SECRET"],
+		Port: ConfigData["PORT"],
+		GoogleClientId: ConfigData["GOOGLE_CLIENT_ID"],
+		GoogleClientSecret: ConfigData["GOOGLE_CLIENT_SECRET"],
+		GoogleSecurityKey: ConfigData["GOOGLE_SECURITY_KEY"],
+		GoogleRedirectUrl: ConfigData["GOOGLE_REDIRECT_URL"],
 	}
 }

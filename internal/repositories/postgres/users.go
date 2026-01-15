@@ -19,13 +19,28 @@ func NewUserRepository(db *db.DB) *UsersRepository {
 	return &UsersRepository{db: db}
 }
 
-func (r *UsersRepository) CreateUser(ctx context.Context, payload *models.CreateUser) error {
-	_, err := r.db.ExecContext(ctx, user_queries.CREATEUSER, payload.FirstName, payload.LastName, payload.Email, payload.Password)
+func (r *UsersRepository) CreateUser(ctx context.Context, payload *models.CreateUser) (*models.UserModel ,error) {
+	var user models.UserModel
+	err := r.db.QueryRowContext(ctx, 
+		user_queries.CREATEUSER, 
+		payload.FirstName, 
+		payload.LastName, 
+		payload.Email, 
+		payload.Password).Scan(
+			&user.Id,
+			&user.FirstName,
+			&user.LastName,
+			&user.Email,
+			&user.Hash,
+			&user.Role,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
 	if err != nil {
 		log.Println("Error creating user ", err)
-		return apperrors.InternalServerError("Error creating user in db")
+		return nil, apperrors.InternalServerError("Error creating user in db")
 	}
-	return nil
+	return &user, nil
 }
 
 func (r *UsersRepository) GetUserByEmail(ctx context.Context, email string) (*models.GetUserResponse, error) {
