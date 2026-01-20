@@ -14,8 +14,6 @@ import (
 	"e-commerce/package/jwt"
 	"log"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -73,11 +71,19 @@ func main() {
 	// v1 router
 	router := v1.NewV1Router(userHandler, authHandler, productHandler, cartHandler, authMiddleware)
 
-	mux.CORSMethodMiddleware(router)
+	// middlewares
+	rateLimiter := middlewares.NewRateLimiter(2, 5)
+	corsMiddleware := middlewares.CORSMiddleware()
+
+	handler := corsMiddleware.Handler(
+	middlewares.SecurityHeaders(
+		rateLimiter.Middleware(router),
+	),
+)
 
 
 	log.Println("Server running at http://localhost" + cfg.Port + ". Db connected: " + db.DriverName())
-	if err := http.ListenAndServe(cfg.Port, router); err != nil {
+	if err := http.ListenAndServe(cfg.Port, handler); err != nil {
 		log.Fatal(err)
 	}
 }
