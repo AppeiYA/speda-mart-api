@@ -37,11 +37,7 @@ func getEnv(variable string, defaultEnv string) string {
 }
 
 func LoadConfig() *Config {
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		log.Fatalln(".env file not found")
-	}
+	_ = godotenv.Load(".env")
 
 	ConfigData := map[string]string{
 		"DATABASE_URL" : requireEnv("DATABASE_URL"),
