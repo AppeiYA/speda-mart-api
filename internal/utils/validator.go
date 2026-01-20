@@ -26,6 +26,8 @@ func ValidationErrors(err error) map[string]string {
 			errors[field] = field + " must be at least " + err.Param() + " characters"
 		case "max":
 			errors[field] = field + " must be at most " + err.Param() + " characters"
+		case "uuid":
+			errors[field] = field + " must be a valid UUID"
 		default:
 			errors[field] = "invalid value for " + field
 		}

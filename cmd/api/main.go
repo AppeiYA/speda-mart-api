@@ -3,6 +3,7 @@ package main
 import (
 	"e-commerce/internal/config"
 	"e-commerce/internal/db"
+	"e-commerce/internal/db/seed"
 	"e-commerce/internal/handlers"
 
 	"e-commerce/internal/middlewares"
@@ -23,6 +24,10 @@ func main() {
 	db, dbErr := db.ConnectDB(cfg.DatabaseUrl)
 	if dbErr != nil {
 		log.Fatal(dbErr)
+	}
+
+	if err := seed.SeedAdmin(db, cfg.AdminKey, cfg.AdminEmail); err != nil {
+		log.Fatalln("Failed to seed admin", err)
 	}
 
 	// oauth2 gomniauth

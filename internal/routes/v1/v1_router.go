@@ -22,9 +22,9 @@ func NewV1Router(
 
 	api := r.PathPrefix("/api/v1").Subrouter()
 
-	users.RegisterUserRoutes(api, uh)
+	users.RegisterUserRoutes(api, uh, am)
 	auth.RegisterAuthRoute(api, ah)
-	products.RegisterProductRoutes(api, ph)
+	products.RegisterProductRoutes(api, ph, am)
 	carts.RegisterCartsRoutes(api, ch, am)
 
 	return r

@@ -58,3 +58,87 @@ func (r *ProductRepository) GetProduct(ctx context.Context, productId string) (*
 	}
 	return &resp, nil
 }
+
+func (r *ProductRepository) AddproductToCategory(ctx context.Context, productId string, categoryId string) error {
+	_, err := r.db.ExecContext(ctx, product_queries.ADDPRODUCTTOCATEGORY, productId, categoryId)
+	if err != nil {
+		log.Println("Error adding product to category", err)
+		return apperrors.InternalServerError(err.Error())
+	}
+	return nil
+}
+
+func (r *ProductRepository) CreateProductCategory(ctx context.Context, payload *models.CreateProductCategoryRequest) (*models.ProductCategory, error) {
+	var category models.ProductCategory
+	err := r.db.QueryRowContext(ctx, product_queries.CREATEPRODUCTCATEGORY, payload.Name, payload.Description).Scan(
+		&category.Id,
+		&category.Name,
+		&category.Description,
+	)
+	if err != nil {
+		log.Println("Error creating product category", err)
+		return nil, apperrors.InternalServerError(err.Error())
+	}
+	return &category, nil
+}
+
+func (r *ProductRepository) RemoveProductFromCategory(ctx context.Context, productId string, categoryId string) error {
+	_, err := r.db.ExecContext(ctx, product_queries.REMOVEPRODUCTFROMCATEGORY, productId, categoryId)
+	if err != nil {
+		log.Println("Error remove product from category", err)
+		return apperrors.InternalServerError(err.Error())
+	}
+	return nil
+}
+
+func (r *ProductRepository) DeleteProductCategory(ctx context.Context, categoryId string) error {
+	_, err := r.db.ExecContext(ctx, product_queries.DELETEPRODUCTCATEGORY, categoryId)
+	if err != nil {
+		log.Println("Error deleting product category", err)
+		return apperrors.InternalServerError(err.Error())
+	}
+	return nil
+}
+
+func (r *ProductRepository) UpdateProductCategory(ctx context.Context, name *string, description *string) (*models.ProductCategory, error){
+	var updateCategory models.ProductCategory
+	var productCategoryId string
+
+	err := r.db.QueryRowContext(ctx, product_queries.UPDATEPRODUCTCATEGORY, name, description).Scan(
+		&productCategoryId,
+		&updateCategory.Name,
+		&updateCategory.Description,
+	)
+
+	if err != nil {
+		log.Println("Error updating product category", err)
+		return nil, apperrors.InternalServerError(err.Error())
+	}
+
+	return &updateCategory, nil
+}
+
+func (r *ProductRepository) GetProductsInCategory(ctx context.Context, categoryId string, limit int, offset int) (*[]models.GetProductInCategoryResponse, error) {
+	var products []models.GetProductInCategoryResponse
+
+	err := r.db.SelectContext(ctx, &products, product_queries.GETPRODUCTSINCATEGORY, categoryId, limit, offset)
+	if err != nil {
+		log.Println("Error getting products in category from db: ", err)
+		return nil, apperrors.InternalServerError("error getting products in category")
+	}
+	return &products, nil
+}
+
+func (r *ProductRepository) GetCategory(ctx context.Context, categoryId string) (*models.ProductCategory, error) {
+	var category models.ProductCategory
+
+	err := r.db.GetContext(ctx, &category, product_queries.GETCATEGORY, categoryId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperrors.NotFoundError("category not found")
+		}
+		log.Println("Error getting in db: ", err)
+		return nil, apperrors.InternalServerError("error in db get")
+	}
+	return &category, nil
+}

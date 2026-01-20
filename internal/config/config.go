@@ -15,6 +15,8 @@ type Config struct {
 	GoogleClientSecret string
 	GoogleSecurityKey string
 	GoogleRedirectUrl string
+	AdminKey string
+	AdminEmail string
 }
 
 func requireEnv(variable string) string {
@@ -49,6 +51,8 @@ func LoadConfig() *Config {
 		"GOOGLE_CLIENT_SECRET": requireEnv("GOOGLE_CLIENT_SECRET"),
 		"GOOGLE_SECURITY_KEY": requireEnv("GOOGLE_SECURITY_KEY"),
 		"GOOGLE_REDIRECT_URL": getEnv("GOOGLE_REDIRECT_URL", "http://localhost:3333/api/v1/auth/callback/google"),
+		"ADMIN_KEY": requireEnv("ADMIN_KEY"),
+		"ADMIN_EMAIL": requireEnv("ADMIN_EMAIL"),
 	}
 
 	return &Config{
@@ -59,5 +63,7 @@ func LoadConfig() *Config {
 		GoogleClientSecret: ConfigData["GOOGLE_CLIENT_SECRET"],
 		GoogleSecurityKey: ConfigData["GOOGLE_SECURITY_KEY"],
 		GoogleRedirectUrl: ConfigData["GOOGLE_REDIRECT_URL"],
+		AdminKey: ConfigData["ADMIN_KEY"],
+		AdminEmail: ConfigData["ADMIN_EMAIL"],
 	}
 }
