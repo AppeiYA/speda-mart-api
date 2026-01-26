@@ -36,7 +36,7 @@ func (s *CartsService) AddToCart(ctx context.Context, userId string, payload *mo
 		return err
 	}
 	// check if quantity of product requested to cart matches available amount
-	if product.Quantity < payload.Quantity {
+	if product.TotalQuantity < payload.Quantity {
 		return apperrors.ConflictError("Requested quantity is unavailable")
 	}
 

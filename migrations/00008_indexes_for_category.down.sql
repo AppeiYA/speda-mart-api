@@ -1,0 +1,3 @@
+DROP INDEX IF EXISTS idx_category_parent_id
+DROP INDEX IF EXISTS idx_product_category_category_id
+DROP INDEX IF EXISTS idx_product_category_product_id

@@ -21,6 +21,51 @@ func NewProductRepository(db *db.DB) *ProductRepository {
 	}
 }
 
+func (r *ProductRepository) AddProduct(ctx context.Context, payload *models.CreateProductRequest) (*models.GetProductResponse, error) {
+	var productId string
+	var product models.GetProductResponse
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer tx.Rollback()
+
+	createMProductErr := tx.QueryRowContext(ctx, product_queries.INSERTMASTERPRODUCT, payload.Name, payload.Origin, payload.About, payload.ImageUrls).Scan(
+		&productId,
+	)
+
+	if createMProductErr != nil {
+        return nil, createMProductErr
+    }
+
+	for _, v := range payload.Variants{
+		// INSERT PRODUCT VARIANT
+		_,err:=tx.ExecContext(ctx, product_queries.ADDPRODUCTVARIANT, productId, v.Color, v.Quantity, v.Weight, v.Price, v.ImageUrls)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// get the product and its variant and return it
+	getErr := tx.QueryRowContext(ctx, product_queries.GETPRODUCTBYID, productId).Scan(
+		&product.Id,
+		&product.Name,
+		&product.Origin,
+		&product.About,
+		&product.ImageUrls,
+		&product.CreatedAt,
+		&product.TotalQuantity,
+		&product.Categories,
+		&product.Variants,
+	)
+	if getErr != nil {
+		return nil, getErr
+	}
+	tx.Commit()
+	return &product, nil
+}
+
 func (r *ProductRepository) GetProducts(ctx context.Context, payload *models.GetProductsRequest) (*[]models.GetProductResponse, error) {
 	var products []models.GetProductResponse
 
@@ -70,10 +115,11 @@ func (r *ProductRepository) AddproductToCategory(ctx context.Context, productId 
 
 func (r *ProductRepository) CreateProductCategory(ctx context.Context, payload *models.CreateProductCategoryRequest) (*models.ProductCategory, error) {
 	var category models.ProductCategory
-	err := r.db.QueryRowContext(ctx, product_queries.CREATEPRODUCTCATEGORY, payload.Name, payload.Description).Scan(
+	err := r.db.QueryRowContext(ctx, product_queries.CREATEPRODUCTCATEGORY, payload.Name, payload.Description, payload.ImageUrl).Scan(
 		&category.Id,
 		&category.Name,
 		&category.Description,
+		&category.ImageUrl,
 	)
 	if err != nil {
 		log.Println("Error creating product category", err)
@@ -100,14 +146,15 @@ func (r *ProductRepository) DeleteProductCategory(ctx context.Context, categoryI
 	return nil
 }
 
-func (r *ProductRepository) UpdateProductCategory(ctx context.Context, name *string, description *string) (*models.ProductCategory, error){
+func (r *ProductRepository) UpdateProductCategory(ctx context.Context, name *string, description *string, imageUrl *string, categoryId string) (*models.ProductCategory, error){
 	var updateCategory models.ProductCategory
 	var productCategoryId string
 
-	err := r.db.QueryRowContext(ctx, product_queries.UPDATEPRODUCTCATEGORY, name, description).Scan(
+	err := r.db.QueryRowContext(ctx, product_queries.UPDATEPRODUCTCATEGORY, name, description, imageUrl, categoryId).Scan(
 		&productCategoryId,
 		&updateCategory.Name,
 		&updateCategory.Description,
+		&updateCategory.ImageUrl,
 	)
 
 	if err != nil {
@@ -141,4 +188,19 @@ func (r *ProductRepository) GetCategory(ctx context.Context, categoryId string) 
 		return nil, apperrors.InternalServerError("error in db get")
 	}
 	return &category, nil
+}
+
+func (r *ProductRepository) GetSubCategories(ctx context.Context, categoryId string) (*[]models.ProductCategory, error) {
+	var categories []models.ProductCategory
+
+	err := r.db.SelectContext(ctx, &categories, product_queries.GETSUBCATEGORIES, categoryId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperrors.NotFoundError("category not found")
+		}
+		log.Println("Error getting in db: ", err)
+		return nil, apperrors.InternalServerError("error in db get")
+	}
+
+	return &categories, nil
 }
