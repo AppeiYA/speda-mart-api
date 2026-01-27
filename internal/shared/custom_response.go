@@ -6,6 +6,7 @@ import (
 )
 
 type Payload struct {
+	Success bool `json:"success"`
 	Message string `json:"message"`
 	Data    any    `json:"data,omitempty"`
 	Errors any `json:"errors,omitempty"`
@@ -19,6 +20,9 @@ func ReqResponse(w http.ResponseWriter, statuscode int, payload Payload){
 	resp := map[string]any {
 		"message": payload.Message,
 	}
+
+	resp["success"] = statuscode >= 200 && statuscode < 300
+
 	if payload.Data != nil {
 		resp["data"] = payload.Data
 	}
