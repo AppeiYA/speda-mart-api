@@ -39,3 +39,12 @@ func (s *UserService) CreateUser(ctx context.Context, payload *models.CreateUser
 	_, createErr := s.userRepo.CreateUser(ctx, payload)
 	return createErr
 }
+
+func (s *UserService) GetUserProfile(ctx context.Context, email string) (*models.GetUserResponse, error) {
+	user, err := s.userRepo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
