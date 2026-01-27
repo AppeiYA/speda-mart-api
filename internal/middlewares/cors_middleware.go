@@ -3,7 +3,7 @@ import "github.com/rs/cors"
 
 func CORSMiddleware() *cors.Cors {
 	return cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // adjust
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		ExposedHeaders:   []string{"Authorization"},
