@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strings"
 	"unicode"
 
 	"github.com/go-playground/validator/v10"
@@ -45,4 +46,26 @@ func toSnakeCase(s string) string {
 		output = append(output, unicode.ToLower(r))
 	}
 	return string(output)
+}
+
+func IsStrongPassword(p string) bool {
+	if len(p) < 8 {
+		return false
+	}
+
+	var hasUpper, hasLower, hasDigit, hasSpecial bool
+	for _, c := range p {
+		switch {
+		case unicode.IsUpper(c):
+			hasUpper = true
+		case unicode.IsLower(c):
+			hasLower = true
+		case unicode.IsDigit(c):
+			hasDigit = true
+		case strings.ContainsRune("@$!%*?&", c):
+			hasSpecial = true
+		}
+	}
+
+	return hasUpper && hasLower && hasDigit && hasSpecial
 }
