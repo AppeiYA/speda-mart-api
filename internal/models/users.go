@@ -19,7 +19,7 @@ type CreateUser struct {
 	FirstName string `json:"first_name" db:"first_name" validate:"required"`
 	LastName  string `json:"last_name" db:"last_name" validate:"required"`
 	Email     string `json:"email" db:"email" validate:"email,required"`
-	Password  string `json:"hash" db:"hash" validate:"required,password"`
+	Password  string `json:"password" db:"hash" validate:"required,password"`
 }
 
 type GetUserResponse struct {
