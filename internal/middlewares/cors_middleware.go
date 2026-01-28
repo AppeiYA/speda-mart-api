@@ -17,6 +17,6 @@ func CORSMiddleware() *cors.Cors {
 		ExposedHeaders:   []string{"Authorization"},
 		AllowCredentials: true,
 		MaxAge:           3600,
-		Debug:            true,
+		Debug:            false,
 	})
 }

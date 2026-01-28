@@ -104,3 +104,30 @@ func (a *AuthHandler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	s.ReqResponse(w, http.StatusOK, s.Payload{Message: "Login successful", Data: resp, Token: token})
 }
+
+func (a *AuthHandler) CheckUserExists(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	email := utils.ExtractParams(r, "email")["email"]
+
+	if email == "" {
+		s.ReqResponse(w, http.StatusBadRequest, s.Payload{Message: "Email is required"})
+		return
+	}
+
+	if !isValidEmail(email) {
+		s.ReqResponse(w, http.StatusBadRequest, s.Payload{Message: "Invalid email format"})
+		return
+	}
+
+	exists, err := a.AuthServ.UserExists(ctx, email)
+	if err != nil {
+		s.ReqResponse(w, http.StatusInternalServerError, s.Payload{Message: "Internal server error"})
+		return
+	}
+
+	s.ReqResponse(w, http.StatusOK, s.Payload{Message:"User Exists", Data: map[string]bool{"exists": exists}})
+}
+
+func isValidEmail(email string) bool {
+	return utils.ValidateEmail(email) == nil
+}

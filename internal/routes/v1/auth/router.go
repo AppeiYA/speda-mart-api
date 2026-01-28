@@ -11,6 +11,7 @@ func RegisterAuthRoute(r *mux.Router ,ah *handlers.AuthHandler){
 
 	// authentication
 	auth.HandleFunc("/login", ah.LoginUser).Methods("POST")
+	auth.HandleFunc("/exists/{email}", ah.CheckUserExists).Methods("GET")
 
 	// google auth login
 	auth.HandleFunc("/login/{provider}", ah.GoogleAuthLogin).Methods("GET")

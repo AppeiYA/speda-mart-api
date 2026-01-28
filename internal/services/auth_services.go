@@ -113,3 +113,17 @@ func (s *AuthService) GoogleAuthLogin(ctx context.Context, payload *models.Creat
 	return &resp, token, nil
 
 }
+
+func (s *AuthService) UserExists(ctx context.Context, email string) (bool, error) {
+	_, err := s.UserRepo.GetUserByEmail(ctx, email)
+	if err != nil {
+		if appErr, ok := err.(*apperrors.ErrorResponse); ok {
+			if appErr.Code == apperrors.ErrNotFound {
+				return false, nil
+			}
+			return false, err 
+		}
+		return false, err
+	}
+	return true, nil
+}
